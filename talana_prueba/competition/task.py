@@ -32,7 +32,7 @@ def EventTask():
         winner = contestant.get(id=winner)
         winner.status  = 'winner'
         winner.save()
-        print(winner)
+        print(f"winner!! {winner}")
     
     else :
         print("winner exist")
