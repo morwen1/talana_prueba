@@ -15,7 +15,7 @@ class User(AbstractUser):
     last_name = None  # type: ignore
     contestant_user = models.BooleanField(default=True)
     username = models.CharField(max_length=255 , blank=True)
-    
+    verified = models.BooleanField(default=False)
     email = models.EmailField(
         'email address',
         unique=True,

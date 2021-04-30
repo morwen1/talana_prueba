@@ -4,8 +4,8 @@ from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.permissions import IsAdminUser , IsAuthenticated
-from .serializers import UserSerializer , UserCreate
+from rest_framework.permissions import IsAdminUser , IsAuthenticated ,AllowAny
+from .serializers import UserSerializer , UserCreate ,AccountVerificationSerializer , serializers
 from django.contrib.auth import password_validation , authenticate
 from talana_prueba.competition.models import CompetitionTicketModel
 
@@ -20,9 +20,10 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
     def get_permissions (self) :
 
         permission_classes = []
-        if self.action == 'create' :
+        if self.action in ['register' , 'verify'] :
 
-            permission_classes = [IsAdminUser , ]
+            permission_classes = [AllowAny]
+        
         else :
             permission_classes = [IsAuthenticated , ]
 
@@ -54,7 +55,26 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
     def get_queryset(self, *args, **kwargs):
         return self.queryset.filter(id=self.request.user.id)
 
-    
+    @action(detail=False, methods=['post'])
+    def verify(self, request , *args , **kwargs):
+        """
+        /api/users/verify/
+        Account verification.
+        """
+        if "token" in self.request.query_params.keys() :
+            request.data['token'] = self.request.query_params['token']
+        else :
+            request.data['token'] = ''
+
+
+        serializer = AccountVerificationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        data = {'message': 'Congratulations your account is verified and you now participating in the event c: !!'}
+ 
+        return Response(data, status=status.HTTP_200_OK)
+
+
     
     @action(detail=False , methods=['post'])
     def register(self , request):
@@ -67,8 +87,5 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
         serializer = get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        ticket = CompetitionTicketModel.objects.create(
-            contestant_user= user 
-        )
-        ticket.save()
+        
         return Response(UserSerializer(user).data ,200)
