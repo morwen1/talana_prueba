@@ -35,21 +35,6 @@ services:
     env_file:
       - ./.envs/.local/.postgres
 
-  docs:
-    image: talana_prueba_local_docs
-    container_name: docs
-    build:
-      context: .
-      dockerfile: ./compose/local/docs/Dockerfile
-    env_file:
-      - ./.envs/.local/.django
-    volumes:
-      - ./docs:/docs:z
-      - ./config:/app/config:z
-      - ./talana_prueba:/app/talana_prueba:z
-    ports:
-      - "7021:7000"
-    command: /start-docs
 
   redis:
     image: redis:5.0
@@ -75,10 +60,3 @@ services:
     ports: []
     command: /start-celerybeat
 
-  flower:
-    <<: *django
-    image: talana_prueba_local_flower
-    container_name: flower
-    ports:
-      - "5555:5555"
-    command: /start-flower
